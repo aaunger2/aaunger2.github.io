@@ -2,7 +2,16 @@
 <script src='https://d3js.org/d3.v5.min.js'></script>
 <script src="https://cdn.jsdelivr.net/npm/d3-svg-annotation@2"></script>
 
-<style> circle {fill: red; stroke: black;} </style>
+<style> circle {fill: red; stroke: black;}  </style>
+
+<div style="display:block; width:600;">
+<div id= "navigation_buttons" style="display: inline-flex; width: 100%; height:30; justify-content: space-between; padding-bottom: 5;">
+<button onclick="history.back()">Go Back</button>
+<button onclick="document.location='https://aaunger2.github.io/'">Forward</button>
+</div>
+</div>
+
+
 <body onload='init()'>
 <svg width=700 height=600>
 </svg>
@@ -35,24 +44,57 @@ const colorScale = d3.scaleOrdinal()
 xScale = d3.scaleLog().domain([10,150]).range([0, svg_width]).base(10);
 yScale = d3.scaleLog().domain([10,150]).range([svg_height, 0]).base(10);
 
-//create navigation buttons via triangles
-var sym = d3.symbol().type(d3.symbolTriangle).size(200);
 
-//make back triangle
-d3.select("svg")
-   .append("path")
-   .attr("d", sym)
-   .attr("fill", "grey")
-   .attr('transform', 'rotate(-90, 20, 0)');
 
-//make forward triangle
-d3.select("svg")
-   .append("g")
-   .append("path")
-   .attr("d", sym)
-   .attr("class", "forward_triangle")
-   .attr("fill", "black")
-   .attr('transform', 'rotate(90, 0 ,0) translate (20, -580)')
+
+//Tooltip modified from https://d3-graph-gallery.com/graph/interactivity_tooltip.html
+// create a tooltip
+  var Tooltip = d3.select("#div_template")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-width", "2px")
+    .style("border-radius", "5px")
+    .style("padding", "5px")
+
+// Three functions change the tooltip when user hover / move / leave a cell
+  var mouseover = function(d) {
+    Tooltip
+      .style("opacity", 1)
+    d3.select(this)
+      .style("stroke", "black")
+      .style("opacity", 1)
+  }
+  var mousemove = function(d) {
+    Tooltip
+      .html("Make: " + d.Make + "<br>EngineCylinders: " + d.EngineCylinders + "<br>HWY MPG: " + d.AverageHighwayMPG + "<br>City MPG: " + d.AverageCityMPG)
+      .style("left", (d3.mouse(this)[0]+70) + "px")
+      .style("top", (d3.mouse(this)[1]) + "px")
+  }
+  var mouseleave = function(d) {
+    Tooltip
+      .style("opacity", 0)
+    d3.select(this)
+      .style("stroke", "black")
+      .style("opacity", 0.5)
+  }
+  var mousemove_fwd = function(d) {
+    Tooltip
+      .html("Go Forward?")
+      .style("left", (d3.mouse(this)[0]+70) + "px")
+      .style("top", (d3.mouse(this)[1]) + "px")
+  }
+  var mousemove_bck = function(d) {
+    Tooltip
+      .html("Go Back?")
+      .style("left", (d3.mouse(this)[0]+70) + "px")
+      .style("top", (d3.mouse(this)[1]) + "px")
+  }
+  var onclick_bck = function(d) {
+    window.location.href='https://github.com/aaunger2/aaunger2.github.io';  
+  }
 
 d3.select('svg')
    .append("g")
@@ -66,9 +108,11 @@ d3.select('svg')
    .attr("r",  function(d,i) {return parseInt(d.EngineCylinders) + 5;})
    .attr("opacity", 0.5)
    .style("fill", d => colorScale(d.Fuel))
-;
+   .on("mouseover", mouseover)
+   .on("mousemove", mousemove)
+   .on("mouseleave", mouseleave);
 
-//y axis
+
 d3.select('svg')
   .append("g")
   .attr("transform", "translate(" + margin + "," + margin + ")")
@@ -76,7 +120,6 @@ d3.select('svg')
                      .tickValues([10, 20, 50 ,100])
                      .tickFormat(d3.format("~s")));
 
-//x-axis
 d3.select('svg')
   .append("g")
   .attr("transform", "translate(" + margin + "," + svg_height_margin + ")")
@@ -84,11 +127,11 @@ d3.select('svg')
                      .tickValues([10, 20, 50 ,100])
                      .tickFormat(d3.format("~s")));
 
-
+//add colors for the legend
 lineItemHeight = 20
+
 var leg_y = svg_height * 1/2 ;
 
-//legend box colors
 d3.select('svg')
   .append("g")
   .attr("transform", "translate(" + svg_width_margin + "," +  leg_y + ")")
@@ -103,7 +146,6 @@ d3.select('svg')
   .attr('x', 0)
   .attr('y', (d, i) => lineItemHeight * (i + 1));
 
-//legend text
 d3.select('svg')
   .append('g') 
   .attr("transform", "translate(" + svg_width_margin + "," + leg_y + ")")
@@ -146,47 +188,27 @@ d3.select('svg')
    .attr('transform', 'rotate(-90 ' + y_lab_x + ' ' + y_lab_y + ')')
 ;
    
-
 const annotations = [
   {
-    note: { label: "This visual allows exploration on relationships between car attributes on and how they affect fuel efficiency." },
-    x: 275,
-    y: 240,
-    dy: -25,
-    dx: -25,
+    note: { label: "Move your mouse over the dots to look at individual car data displayed under the graph." },
+    x: 60,
+    y: 50,
   },
-  {
-    note: { label: "Go back" },
-    x: 33,
-    y: 30,
-    dy: 15,
-    dx: 65,
-    subject: { radius: 15, radiusPadding: 10 },
-  },
-  {
-    note: { label: "Go forward" },
-    x: 570,
-    y: 30,
-    dy: 15,
-    dx: -175,
-    subject: { radius: 15, radiusPadding: 10 },
-  },
- 
 ];
 
-//const type = d3.annotationLabel
-const type = d3.annotationCalloutElbow
+const type = d3.annotationLabel
+//const type = d3.annotationCalloutCircle
 
 const makeAnnotations = d3.annotation()
-          .type(type)
           .annotations(annotations)
 
         d3.select("svg")
           .append("g")
           .attr("class", "annotation-group")
           .call(makeAnnotations)
-
 }
+
+
 </script>
 </body>
 </html>
