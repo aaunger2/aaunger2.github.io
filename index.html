@@ -1,44 +1,138 @@
-<!DOCTYPE html>
 <html>
 <script src='https://d3js.org/d3.v5.min.js'></script>
-<style> rect {fill: lightblue; stroke: black; }</style>
-<body>
-<svg width=300 height=300>
+<style> circle {fill: red; stroke: black;} </style>
+<body onload='init()'>
+<svg width=600 height=600>
 </svg>
+<div id="div_template"></div>
 <script>
-var data = [4,8,15,16,23,42];
+async function init() {
+
+const data = await d3.csv('https://flunky.github.io/cars2017.csv');
+
+var canvas_width = 600;
+var canvas_height = 600;
 var margin = 50;
+var svg_height = canvas_width - (2*margin);
+var svg_width = canvas_height - (2*margin);
+var svg_height_margin = margin + svg_height;
+var svg_width_margin = margin + svg_width;
 
-xScale = d3.scaleBand()
-           .domain([0,1,2,3,4,5])
-           .range([0, 200])
-           .paddingInner(0);
-yScale = d3.scaleLinear().domain([0,42]).range([200, 0]);
+const categories = ["Gasoline", "Diesel", "Electricity"];
+const customColors = ["blue", "red", "green"];
+const  legend_fuel = [
+    {name: "Electric", color: "green"},
+    {name: "Gas", color: "blue"},
+    {name: "Diesel"}
+];
 
-// set up g to start at the margin origin top left
+const colorScale = d3.scaleOrdinal()
+    .domain(categories)
+    .range(customColors);
+
+xScale = d3.scaleLog().domain([10,150]).range([0, svg_width]).base(10);
+yScale = d3.scaleLog().domain([10,150]).range([svg_height, 0]).base(10);
+
+//Tooltip modified from https://d3-graph-gallery.com/graph/interactivity_tooltip.html
+// create a tooltip
+  var Tooltip = d3.select("#div_template")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-width", "2px")
+    .style("border-radius", "5px")
+    .style("padding", "5px")
+
+// Three functions change the tooltip when user hover / move / leave a cell
+  var mouseover = function(d) {
+    Tooltip
+      .style("opacity", 1)
+    d3.select(this)
+      .style("stroke", "black")
+      .style("opacity", 1)
+  }
+  var mousemove = function(d) {
+    Tooltip
+      .html("Make: " + d.Make + "<br>EngineCylinders: " + d.EngineCylinders)
+      .style("left", (d3.mouse(this)[0]+70) + "px")
+      .style("top", (d3.mouse(this)[1]) + "px")
+  }
+  var mouseleave = function(d) {
+    Tooltip
+      .style("opacity", 0)
+    d3.select(this)
+      .style("stroke", "none")
+      .style("opacity", 0.5)
+  }
+
 d3.select('svg')
-  .append("g")
-  .attr("transform","translate(" + margin + "," + margin + ")")
-  .selectAll('rect')
-  .data(data)
-  .enter()
-  .append('rect')
-    .attr('x', function(d,i) {return xScale(i);}) // x coordinate of bar
-    .attr('y',function(d,i) {return yScale(d);}) // y coordinate of bar
-    .attr("width", xScale.bandwidth()) // x width of bar
-    .attr('height',function(d,i) {return yScale(0) - yScale(d);}); // y length-height of bar
+   .append("g")
+   .attr("class", "inner_space")
+   .attr("transform","translate(" + margin + "," + margin + ")")
+   .selectAll('circle')
+   .data(data) 
+   .enter()
+   .append('circle')
+   .attr("cx", function(d,i) {return xScale(d.AverageCityMPG);})
+   .attr("cy", function(d,i) {return yScale(d.AverageHighwayMPG);})
+   .attr("r",  function(d,i) {return parseInt(d.EngineCylinders) + 2;})
+   .attr("opacity", 0.5)
+   .style("fill", d => colorScale(d.Fuel))
+   .on("mouseover", mouseover)
+   .on("mousemove", mousemove)
+   .on("mouseleave", mouseleave);
+
 
 d3.select('svg')
   .append("g")
   .attr("transform", "translate(" + margin + "," + margin + ")")
-  .call(d3.axisLeft(yScale));
+  .call(d3.axisLeft(yScale)
+                     .tickValues([10, 20, 50 ,100])
+                     .tickFormat(d3.format("~s")));
 
 d3.select('svg')
   .append("g")
-  .attr("transform", "translate(" + margin + "," + 250 + ")")
-  .call(d3.axisBottom(xScale));
+  .attr("transform", "translate(" + margin + "," + svg_height_margin + ")")
+  .call(d3.axisBottom(xScale)
+                     .tickValues([10, 20, 50 ,100])
+                     .tickFormat(d3.format("~s")));
+
+//add colors for the legend
+lineItemHeight = 15
+
+var leg_y = svg_height / 2 + margin / 2 ;
+
+d3.select('svg')
+  .append("g")
+  .attr("transform", "translate(" + svg_width_margin + "," +  leg_y + ")")
+  .selectAll('rect')
+  .data([0,1,2]) 
+  .enter()
+  .append('rect')
+  .attr('fill', (d, i) => customColors[i])
+  .attr('stroke', '#000')
+  .attr('width', 10)
+  .attr('height', 10)
+  .attr('x', 0)
+  .attr('y', (d, i) => lineItemHeight * (i + 1));
+
+d3.select('svg')
+  .append('g') 
+  .attr("transform", "translate(" + svg_width_margin + "," + leg_y + ")")
+  .selectAll('text')
+  .data(categories)
+  .enter()
+  .append('text')
+  .text(d => d)
+  .attr('x', 12)
+  .attr('y', (d,i) => 8 + lineItemHeight * (i + 1))
+  .style('font-size', '8px');
+
+
+}
 </script>
 </body>
 </html>
-
 <!--  data located here: https://github.com/aaunger2/aaunger2.github.io/blob/189b075701917b1c4bf12306ceb785ab8b2d1323/sample_-_superstore(Orders).csv --> 
