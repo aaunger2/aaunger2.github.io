@@ -71,7 +71,6 @@ yScale = d3.scaleLog().domain([10,150]).range([svg_height, 0]).base(10);
 
 d3.select('svg')
    .append("g")
-   .attr("class", "inner_space")
    .attr("transform","translate(" + margin + "," + margin + ")")
    .selectAll('circle')
    .data(data) 
@@ -131,6 +130,37 @@ d3.select('svg')
   .attr('x', 13)
   .attr('y', (d,i) => 10 + lineItemHeight * (i + 1))
   .style('font-size', '9px');
+
+//title
+d3.select('svg')
+   .append("g")
+   .append('text')
+   .text("Effect of Fuel Type & Engine Cylinder Ct on MPH")
+   .attr('x', margin)
+   .attr('y', (margin/2))
+   .style('font-size', '25px');
+;
+
+//axis labels
+d3.select('svg')
+   .append("g")
+   .append('text')
+   .text("City mph")
+   .attr('x', canvas_width/2- 20)
+   .attr('y', canvas_height - (margin/2));
+
+var y_lab_y = canvas_height/2+ 20;
+var y_lab_x = 20;
+
+d3.select('svg')
+   .append('g')
+   .append('text')
+   .text("Hwy mpg")
+   .attr("x", y_lab_x)
+   .attr("y", y_lab_y)
+   .attr('transform', 'rotate(-90 ' + y_lab_x + ' ' + y_lab_y + ')')
+;
+   
 
 
 
