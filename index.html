@@ -135,7 +135,7 @@ d3.select('svg')
 d3.select('svg')
    .append("g")
    .append('text')
-   .text("Effect of Fuel Type & Engine Cylinder Ct on MPH")
+   .text("Effect of Fuel Type & Engine Cylinder Ct on MPG")
    .attr('x', margin)
    .attr('y', (margin/2))
    .style('font-size', '25px');
@@ -145,7 +145,7 @@ d3.select('svg')
 d3.select('svg')
    .append("g")
    .append('text')
-   .text("City mph")
+   .text("City mpg")
    .attr('x', canvas_width/2- 20)
    .attr('y', canvas_height - (margin/2));
 
@@ -166,7 +166,7 @@ d3.select('svg')
 
 const annotations = [
   {
-    note: { label: "Electric cars have no engine cylinders and excellent mph. " },
+    note: { label: "Electric cars have no engine cylinders and excellent mpg. " },
     x: 500,
     y: 125,
     dy: 100,
@@ -174,7 +174,7 @@ const annotations = [
     subject: { radius: 75, radiusPadding: 10 },
   },
   {
-    note: { label: "Larger engine cylinders are associated with poor mph." },
+    note: { label: "Larger engine cylinders are associated with poor mpg." },
     x: 79,
     y: 437,
     dy: 20,
