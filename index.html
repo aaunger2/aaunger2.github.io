@@ -1,8 +1,10 @@
 <html>
 <script src='https://d3js.org/d3.v5.min.js'></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-svg-annotation@2"></script>
+
 <style> circle {fill: red; stroke: black;} </style>
 <body onload='init()'>
-<svg width=600 height=600>
+<svg width=700 height=600>
 </svg>
 <div id="div_template"></div>
 <script>
@@ -77,7 +79,7 @@ d3.select('svg')
    .append('circle')
    .attr("cx", function(d,i) {return xScale(d.AverageCityMPG);})
    .attr("cy", function(d,i) {return yScale(d.AverageHighwayMPG);})
-   .attr("r",  function(d,i) {return parseInt(d.EngineCylinders) + 2;})
+   .attr("r",  function(d,i) {return parseInt(d.EngineCylinders) + 5;})
    .attr("opacity", 0.5)
    .style("fill", d => colorScale(d.Fuel))
    .on("mouseover", mouseover)
@@ -100,9 +102,9 @@ d3.select('svg')
                      .tickFormat(d3.format("~s")));
 
 //add colors for the legend
-lineItemHeight = 15
+lineItemHeight = 20
 
-var leg_y = svg_height / 2 + margin / 2 ;
+var leg_y = svg_height * 1/2 ;
 
 d3.select('svg')
   .append("g")
@@ -113,8 +115,8 @@ d3.select('svg')
   .append('rect')
   .attr('fill', (d, i) => customColors[i])
   .attr('stroke', '#000')
-  .attr('width', 10)
-  .attr('height', 10)
+  .attr('width', 12)
+  .attr('height', 12)
   .attr('x', 0)
   .attr('y', (d, i) => lineItemHeight * (i + 1));
 
@@ -126,10 +128,50 @@ d3.select('svg')
   .enter()
   .append('text')
   .text(d => d)
-  .attr('x', 12)
-  .attr('y', (d,i) => 8 + lineItemHeight * (i + 1))
-  .style('font-size', '8px');
+  .attr('x', 13)
+  .attr('y', (d,i) => 10 + lineItemHeight * (i + 1))
+  .style('font-size', '9px');
 
+
+
+const annotations = [
+  {
+    note: { label: "Electric cars have no engine cylinders and excellent mph. " },
+    x: 500,
+    y: 125,
+    dy: 100,
+    dx: -20,
+    subject: { radius: 75, radiusPadding: 10 },
+  },
+  {
+    note: { label: "Larger engine cylinders are associated with poor mph." },
+    x: 79,
+    y: 437,
+    dy: 20,
+    dx: 75,
+    subject: { radius: 50, radiusPadding: 10 },
+  },
+  {
+    note: { label: "Diesel vehicles are less common and have mid-size cylinders." },
+    x: 220,
+    y: 325,
+    dy: 20,
+    dx: 75,
+    subject: { radius: 60, radiusPadding: 10 },
+  },
+];
+
+//const type = d3.annotationLabel
+const type = d3.annotationCalloutCircle
+
+const makeAnnotations = d3.annotation()
+          .type(type)
+          .annotations(annotations)
+
+        d3.select("svg")
+          .append("g")
+          .attr("class", "annotation-group")
+          .call(makeAnnotations)
 
 }
 </script>
