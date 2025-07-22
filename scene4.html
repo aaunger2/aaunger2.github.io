@@ -6,8 +6,8 @@
 
 <div style="display:block; width:600;">
 <div id= "navigation_buttons" style="display: inline-flex; width: 100%; height:30; justify-content: space-between; padding-bottom: 2;">
-<button onclick="document.location='https://aaunger2.github.io/'">Go Back</button>
-<button onclick="document.location='./scene2.html'">Forward</button>
+<button onclick="document.location='./scene3.html'">Go Back</button>
+<button onclick="document.location='./scene5.html'">Forward</button>
 </div>
 </div>
 
@@ -43,6 +43,7 @@ const colorScale = d3.scaleOrdinal()
 xScale = d3.scaleLog().domain([10,150]).range([0, svg_width]).base(10);
 yScale = d3.scaleLog().domain([10,150]).range([svg_height, 0]).base(10);
 
+
 d3.select('svg')
    .append("g")
    .attr("transform","translate(" + margin + "," + margin + ")")
@@ -57,7 +58,7 @@ d3.select('svg')
    .style("fill", d => colorScale(d.Fuel))
 ;
 
-//y axis
+
 d3.select('svg')
   .append("g")
   .attr("transform", "translate(" + margin + "," + margin + ")")
@@ -65,7 +66,6 @@ d3.select('svg')
                      .tickValues([10, 20, 50 ,100])
                      .tickFormat(d3.format("~s")));
 
-//x-axis
 d3.select('svg')
   .append("g")
   .attr("transform", "translate(" + margin + "," + svg_height_margin + ")")
@@ -73,11 +73,11 @@ d3.select('svg')
                      .tickValues([10, 20, 50 ,100])
                      .tickFormat(d3.format("~s")));
 
-
+//add colors for the legend
 lineItemHeight = 20
+
 var leg_y = svg_height * 1/2 ;
 
-//legend box colors
 d3.select('svg')
   .append("g")
   .attr("transform", "translate(" + svg_width_margin + "," +  leg_y + ")")
@@ -92,7 +92,6 @@ d3.select('svg')
   .attr('x', 0)
   .attr('y', (d, i) => lineItemHeight * (i + 1));
 
-//legend text
 d3.select('svg')
   .append('g') 
   .attr("transform", "translate(" + svg_width_margin + "," + leg_y + ")")
@@ -138,33 +137,17 @@ d3.select('svg')
 
 const annotations = [
   {
-    note: { label: "This visual allows exploration on relationships between car attributes on and how they affect fuel efficiency." },
-    x: 275,
-    y: 260,
-    dy: -25,
-    dx: -25,
+    note: { label: "Electric cars have no engine cylinders and excellent mpg. " },
+    x: 500,
+    y: 125,
+    dy: 100,
+    dx: -20,
+    subject: { radius: 75, radiusPadding: 10 },
   },
-  {
-    note: { label: "Go back to previous scene." },
-    x: 33,
-    y: 27,
-    dy: 15,
-    dx: 65,
-    subject: { radius: 15, radiusPadding: 10 },
-  },
-  {
-    note: { label: "Go forward to view next scene." },
-    x: 565,
-    y: 30,
-    dy: 20,
-    dx: -50,
-    subject: { radius: 15, radiusPadding: 10 },
-  },
- 
 ];
 
 //const type = d3.annotationLabel
-const type = d3.annotationCalloutElbow
+const type = d3.annotationCalloutCircle
 
 const makeAnnotations = d3.annotation()
           .type(type)
@@ -176,6 +159,8 @@ const makeAnnotations = d3.annotation()
           .call(makeAnnotations)
 
 }
+
+
 </script>
 </body>
 </html>
