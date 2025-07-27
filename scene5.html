@@ -13,10 +13,11 @@
 </div>
 
 <body onload='init()'>
-<svg width=700 height=600>
-</svg>
+
 <div id="div_template"></div>
+
 <script>
+
 async function init() {
 
 const data = await d3.csv('https://flunky.github.io/cars2017.csv');
@@ -24,10 +25,19 @@ const data = await d3.csv('https://flunky.github.io/cars2017.csv');
 var canvas_width = 600;
 var canvas_height = 600;
 var margin = 50;
-var svg_height = canvas_width - (2*margin);
-var svg_width = canvas_height - (2*margin);
+var svg_height = canvas_height - (2*margin);
+var svg_width = canvas_width - (2*margin);
 var svg_height_margin = margin + svg_height;
 var svg_width_margin = margin + svg_width;
+
+xScale = d3.scaleLog().domain([10,150]).range([0, svg_width]).base(10);
+yScale = d3.scaleLog().domain([10,150]).range([svg_height, 0]).base(10);
+
+// append the svg to the body
+var svg = d3.select('#div_template')
+   .append('svg')
+   .attr("width", canvas_width)
+   .attr("height", canvas_height);
 
 const categories = ["Gasoline", "Diesel", "Electricity"];
 const customColors = ["blue", "red", "green"];
@@ -40,11 +50,6 @@ const  legend_fuel = [
 const colorScale = d3.scaleOrdinal()
     .domain(categories)
     .range(customColors);
-
-xScale = d3.scaleLog().domain([10,150]).range([0, svg_width]).base(10);
-yScale = d3.scaleLog().domain([10,150]).range([svg_height, 0]).base(10);
-
-
 
 
 //Tooltip modified from https://d3-graph-gallery.com/graph/interactivity_tooltip.html
@@ -80,24 +85,42 @@ yScale = d3.scaleLog().domain([10,150]).range([svg_height, 0]).base(10);
       .style("stroke", "black")
       .style("opacity", 0.5)
   }
-  var mousemove_fwd = function(d) {
-    Tooltip
-      .html("Go Forward?")
-      .style("left", (d3.mouse(this)[0]+70) + "px")
-      .style("top", (d3.mouse(this)[1]) + "px")
-  }
-  var mousemove_bck = function(d) {
-    Tooltip
-      .html("Go Back?")
-      .style("left", (d3.mouse(this)[0]+70) + "px")
-      .style("top", (d3.mouse(this)[1]) + "px")
-  }
-  var onclick_bck = function(d) {
-    window.location.href='https://github.com/aaunger2/aaunger2.github.io';  
-  }
 
-d3.select('svg')
-   .append("g")
+
+// y axis
+var y_axis = d3.select('svg')
+  .append("g")
+  .attr("transform", "translate(" + margin + "," + margin + ")")
+  .call(d3.axisLeft(yScale)
+                     .tickValues([10, 20, 50 ,100])
+                     .tickFormat(d3.format("~s")));
+
+// x axis
+var x_axis = d3.select('svg')
+  .append("g")
+  .attr("transform", "translate(" + margin + "," + svg_height_margin + ")")
+  .call(d3.axisBottom(xScale)
+                     .tickValues([10, 20, 50 ,100])
+                     .tickFormat(d3.format("~s")));
+// modified from https://d3-graph-gallery.com/graph/interactivity_zoom.html
+
+// Set the zoom and Pan features: how much you can zoom, on which part, and what to do when there is a zoom
+var zoom = d3.zoom()
+    .scaleExtent([.5, 20])  // This control how much you can unzoom (x0.5) and zoom (x20)
+    .extent([[0, 0], [svg_width, svg_height]])
+    .on("zoom", updateChart);
+
+// This add an invisible rect on top of the chart area. This rect can recover pointer events: necessary to understand when the user zoom
+svg.append("rect")
+    .attr("width", svg_width)
+    .attr("height", svg_height)
+    .style("fill", "none")
+    .style("pointer-events", "all")
+    .attr('transform', 'translate(' + margin + ',' + margin + ')')
+    .call(zoom);
+
+//add circles
+svg.append('g')
    .attr("transform","translate(" + margin + "," + margin + ")")
    .selectAll('circle')
    .data(data) 
@@ -113,19 +136,33 @@ d3.select('svg')
    .on("mouseleave", mouseleave);
 
 
-d3.select('svg')
-  .append("g")
-  .attr("transform", "translate(" + margin + "," + margin + ")")
-  .call(d3.axisLeft(yScale)
-                     .tickValues([10, 20, 50 ,100])
-                     .tickFormat(d3.format("~s")));
 
-d3.select('svg')
-  .append("g")
-  .attr("transform", "translate(" + margin + "," + svg_height_margin + ")")
-  .call(d3.axisBottom(xScale)
-                     .tickValues([10, 20, 50 ,100])
-                     .tickFormat(d3.format("~s")));
+
+function updateChart() {
+
+    // recover the new scale
+    var newX = d3.event.transform.rescaleX(xScale);
+    var newY = d3.event.transform.rescaleY(yScale);
+
+    // update axes with these new boundaries -- this is working so above must be working
+    x_axis.call(d3.axisBottom(newX).tickFormat(d3.format("~s")));
+    y_axis.call(d3.axisLeft(newY).tickFormat(d3.format("~s")));
+	
+    //console.log(scatter.selectAll('circle'))
+    // update circle position
+    svg
+      .selectAll("circle")
+      .attr('cx', function(d) {return newX(d.AverageCityMPG);})
+      .attr('cy', function(d) {return newY(d.AverageHighwayMPG);})
+      .attr("opacity", 0.5)
+      .style("fill", d => colorScale(d.Fuel))
+      .on("mouseover", mouseover)
+      .on("mousemove", mousemove)
+      .on("mouseleave", mouseleave);
+	
+  }
+
+
 
 //add colors for the legend
 lineItemHeight = 20
@@ -213,4 +250,3 @@ const makeAnnotations = d3.annotation()
 </script>
 </body>
 </html>
-<!--  data located here: https://github.com/aaunger2/aaunger2.github.io/blob/189b075701917b1c4bf12306ceb785ab8b2d1323/sample_-_superstore(Orders).csv --> 
